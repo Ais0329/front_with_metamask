@@ -11,6 +11,7 @@ fundButton.onclick = fund
 balanceButton.onclick = getBalance
 
 async function connect() {
+  //判断是否安装了MetaMask
   if (typeof window.ethereum !== "undefined") {
     try {
       await ethereum.request({ method: "eth_requestAccounts" })
@@ -46,17 +47,27 @@ async function withdraw() {
 }
 
 async function fund() {
+  //获取输入框中的金额
   const ethAmount = document.getElementById("ethAmount").value
   console.log(`Funding with ${ethAmount}...`)
+  //判断是否安装了MetaMask
   if (typeof window.ethereum !== "undefined") {
+    //创建一个provider,固定步骤,想和区块链交互就要创建
     const provider = new ethers.BrowserProvider(window.ethereum)
+    //获取账户
     await provider.send('eth_requestAccounts', [])
+    //对这个交易进行签名,得到签名者账户
     const signer = await provider.getSigner()
+    //创建合约实例,合约地址,合约abi,签名者账户
     const contract = new ethers.Contract(contractAddress, abi, signer)
     try {
+      //这里的参数是根据合约abi来的
       const transactionResponse = await contract.fund(2, "0x0000000000000000000000000000000000000000", {
         value: ethers.parseEther(ethAmount),
       })
+      // const transactionResponse = await contract.fund({
+      //   value: ethers.parseEther(ethAmount),
+      // })
       await transactionResponse.wait(1)
     } catch (error) {
       console.log(error)
@@ -79,3 +90,4 @@ async function getBalance() {
     balanceButton.innerHTML = "Please install MetaMask"
   }
 }
+
